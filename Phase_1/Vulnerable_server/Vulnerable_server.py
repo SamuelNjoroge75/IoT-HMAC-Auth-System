@@ -67,6 +67,6 @@ if __name__ == '__main__':
     print("[*] Server running on port 5000") 
     print("[*] Authentication method: MAC address only")
     server.run(
-        host="127.0.0.1", 
+        host="<server's IP Address>", 
         port=5000,
         debug=True) #This line starts the Flask server, making it accessible on to all the devices in the network

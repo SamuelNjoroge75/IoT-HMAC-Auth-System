@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IoT Device Dashboard — IoT Authentication Security Project</title>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f1520;--card:#141c2b;--border:#1e2d45;
+  --accent:#f0a500;--ok:#00c97a;--warn:#f0a500;--danger:#ff3c5a;--blue:#00d4ff;
+  --text:#c8d8e8;--dim:#4a6280;--head:#e8f0f8;
+  --mono:'JetBrains Mono','Fira Code','Courier New',monospace;
+  --sans:'Inter','Segoe UI',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:50%;display:grid;place-items:center;font-size:16px}
+.logo-text strong{display:block;font-family:var(--mono);font-size:14px;color:var(--accent)}
+.logo-text span{font-size:11px;color:var(--dim)}
+.vm-badge{font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(240,165,0,.1);border:1px solid var(--accent);color:var(--accent)}
+.clock{font-family:var(--mono);font-size:12px;color:var(--dim)}
+
+main{max-width:1200px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.card.full{grid-column:1/-1}
+.card-header{padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.card-body{padding:16px}
+
+/* PHASE CARDS */
+.phase-card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.phase-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.phase-header.vuln{background:rgba(240,165,0,.07);border-bottom:1px solid rgba(240,165,0,.2)}
+.phase-header.hmac{background:rgba(0,201,122,.07);border-bottom:1px solid rgba(0,201,122,.2)}
+.phase-title{font-family:var(--mono);font-size:12px;font-weight:700}
+.phase-title.vuln{color:var(--warn)}
+.phase-title.hmac{color:var(--ok)}
+.phase-desc{font-size:11px;color:var(--dim);margin-bottom:12px}
+.phase-body{padding:14px}
+
+.btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .15s;width:100%;justify-content:center;margin-bottom:8px}
+.btn.run-vuln{border-color:rgba(240,165,0,.4)}.btn.run-vuln:hover{border-color:var(--warn);color:var(--warn)}
+.btn.run-hmac{border-color:rgba(0,201,122,.4)}.btn.run-hmac:hover{border-color:var(--ok);color:var(--ok)}
+
+.badge{padding:2px 10px;border-radius:3px;font-size:10px;font-family:var(--mono)}
+.badge.on{background:rgba(0,201,122,.15);color:var(--ok)}
+.badge.off{background:rgba(255,60,90,.1);color:var(--danger)}
+.badge.running{background:rgba(0,212,255,.15);color:var(--blue)}
+
+/* INSTRUCTION BOX */
+.instr{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:2}
+.instr strong{color:var(--blue)}
+
+/* OUTPUT PANEL */
+.log-tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border)}
+.log-tab{padding:7px 14px;font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s}
+.log-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.log-out{font-family:var(--mono);font-size:11px;line-height:1.7;height:300px;overflow-y:auto;padding:12px;background:var(--bg);color:#5a8ab0}
+.log-out::-webkit-scrollbar{width:4px}
+.log-out::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.ll{display:block;white-space:pre-wrap;word-break:break-all}
+.ll.ok{color:var(--ok)}.ll.bad{color:var(--danger)}.ll.warn{color:var(--warn)}.ll.info{color:var(--blue)}
+.ll-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--dim);font-size:12px}
+
+/* TEMP GAUGE */
+.temp-display{text-align:center;padding:16px 0}
+.temp-value{font-family:var(--mono);font-size:48px;font-weight:700;color:var(--accent)}
+.temp-label{font-size:11px;color:var(--dim);margin-top:4px}
+.temp-history{display:flex;align-items:flex-end;gap:3px;height:50px;margin-top:12px;padding:0 8px}
+.temp-bar{flex:1;background:var(--accent);border-radius:2px 2px 0 0;opacity:.7;transition:height .4s ease;min-width:4px}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+footer{text-align:center;padding:16px;font-family:var(--mono);font-size:10px;color:var(--dim);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📡</div>
+    <div class="logo-text">
+      <strong>IoT Device Dashboard</strong>
+      <span>Kali Linux VM — Temperature Sensor Simulation</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="vm-badge">📡 IoT Device VM</div>
+    <div class="clock" id="clk">--:--:--</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- PHASE 1 CARD -->
+  <div class="phase-card">
+    <div class="phase-header vuln">
+      <div class="phase-title vuln">Phase 1 — Vulnerable (MAC only)</div>
+      <span class="badge off" id="svc-iot">● IDLE</span>
+    </div>
+    <div class="phase-body">
+      <p class="phase-desc">Sends temperature data using only MAC address authentication. No HMAC signature. Attackers can spoof this.</p>
+      <button class="btn run-vuln" onclick="runScript('iot')">▶ Run IoT_device.py (7 readings)</button>
+      <div class="instr">
+        <strong>Script:</strong> IoT_device.py<br>
+        <strong>Auth:</strong> MAC address only<br>
+        <strong>Server:</strong> Vulnerable_server.py on Ubuntu VM
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 CARD -->
+  <div class="phase-card">
+    <div class="phase-header hmac">
+      <div class="phase-title hmac">Phase 2 — HMAC Secured</div>
+      <span class="badge off" id="svc-hmac-iot">● IDLE</span>
+    </div>
+    <div class="phase-body">
+      <p class="phase-desc">Sends temperature data with HMAC-SHA256 signature. Server verifies each packet cryptographically.</p>
+      <button class="btn run-hmac" onclick="runScript('hmac_iot')">▶ Run HMAC-IoT_device.py (7 readings)</button>
+      <div class="instr">
+        <strong>Script:</strong> HMAC-IoT_device.py<br>
+        <strong>Auth:</strong> MAC + HMAC-SHA256 signature<br>
+        <strong>Server:</strong> HMAC_server.py on Ubuntu VM
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMP GAUGE -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><span class="dot"></span> Last Transmitted Temperature</div></div>
+    <div class="card-body">
+      <div class="temp-display">
+        <div class="temp-value" id="temp-val">—</div>
+        <div class="temp-label" id="temp-label">No data sent yet</div>
+      </div>
+      <div class="temp-history" id="temp-hist"></div>
+    </div>
+  </div>
+
+  <!-- WHAT IS HAPPENING -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">ℹ What is happening?</div></div>
+    <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
+      <p style="margin-bottom:10px">This VM simulates an IoT temperature sensor. It generates random temperature readings between 20–40°C and sends them to the Ubuntu Server VM over HTTP as HTTP requests.</p>
+      <p style="margin-bottom:10px"><span style="color:var(--warn)">Phase 1</span> — The device authenticates using only its MAC address. The server accepts any request that carries the right MAC address, which an attacker can spoof easily in a local network.</p>
+      <p><span style="color:var(--ok)">Phase 2</span> — The device signs each data packet using HMAC-SHA256 with a pre-shared secret key. The server verifies the signature before accepting any data, so a spoofed request without the key will be blocked.</p>
+    </div>
+  </div>
+
+  <!-- OUTPUT LOG -->
+  <div class="card full">
+    <div class="card-header"><div class="card-title">📋 Script Output</div></div>
+    <div class="log-tabs">
+      <div class="log-tab active" onclick="switchTab('iot',this)">Phase 1 — IoT_device.py</div>
+      <div class="log-tab"       onclick="switchTab('hmac_iot',this)">Phase 2 — HMAC-IoT_device.py</div>
+    </div>
+    <div class="log-out" id="log-out"><span class="ll-empty">Run a script above to see output here…</span></div>
+  </div>
+
+</main>
+
+<footer>IoT Device Dashboard · IoT Authentication Security Project · Auto-refresh 2s</footer>
+
+<script>
+let activeTab = 'iot';
+const temps = [];
+
+setInterval(() => { document.getElementById('clk').textContent = new Date().toLocaleTimeString('en-GB'); }, 1000);
+
+function switchTab(name, el) {
+  activeTab = name;
+  document.querySelectorAll('.log-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  fetchOutput(name);
+}
+
+function colour(line) {
+  const l = line.toLowerCase();
+  if (l.includes('successfully') || l.includes('sent'))   return `<span class="ll ok">${line}</span>`;
+  if (l.includes('error') || l.includes('failed'))        return `<span class="ll bad">${line}</span>`;
+  if (l.includes('hmac') || l.includes('signature'))      return `<span class="ll info">${line}</span>`;
+  if (l.includes('starting') || l.includes('dashboard'))  return `<span class="ll warn">${line}</span>`;
+  return `<span class="ll">${line}</span>`;
+}
+
+function extractTemp(lines) {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const m = lines[i].match(/(\d+\.\d+)°C/);
+    if (m) return parseFloat(m[1]);
+  }
+  return null;
+}
+
+function renderTempHistory() {
+  const el = document.getElementById('temp-hist');
+  if (!temps.length) { el.innerHTML = ''; return; }
+  const max = Math.max(...temps);
+  el.innerHTML = temps.map(t => {
+    const h = Math.max(4, (t/max)*46);
+    return `<div class="temp-bar" style="height:${h}px" title="${t}°C"></div>`;
+  }).join('');
+}
+
+async function fetchOutput(name) {
+  try {
+    const r = await fetch(`/api/output/${name}`);
+    const d = await r.json();
+    const el = document.getElementById('log-out');
+    if (!d.lines || !d.lines.length) { el.innerHTML = '<span class="ll-empty">No output yet…</span>'; return; }
+    el.innerHTML = d.lines.map(colour).join('\n');
+
+    const t = extractTemp(d.lines);
+    if (t !== null) {
+      document.getElementById('temp-val').textContent = t + '°C';
+      document.getElementById('temp-label').textContent = `Sent via ${name === 'iot' ? 'MAC-only' : 'HMAC-signed'} authentication`;
+      temps.push(t);
+      if (temps.length > 14) temps.shift();
+      renderTempHistory();
+    }
+  } catch(e) {}
+}
+
+async function pollStatus() {
+  try {
+    const r = await fetch('/api/status'); const d = await r.json();
+    const ri = d.running;
+    const bi = document.getElementById('svc-iot');
+    const bh = document.getElementById('svc-hmac-iot');
+    bi.textContent = ri.iot      ? '● RUNNING' : '● IDLE'; bi.className = `badge ${ri.iot      ? 'running' : 'off'}`;
+    bh.textContent = ri.hmac_iot ? '● RUNNING' : '● IDLE'; bh.className = `badge ${ri.hmac_iot ? 'running' : 'off'}`;
+  } catch(e) {}
+}
+
+async function runScript(name) {
+  try { await fetch(`/api/run/${name}`, {method:'POST'}); } catch(e) {}
+}
+
+async function poll() { await pollStatus(); await fetchOutput(activeTab); }
+poll(); setInterval(poll, 2000);
+</script>
+</body>
+</html>

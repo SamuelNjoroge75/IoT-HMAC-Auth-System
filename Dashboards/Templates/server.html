@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Server Dashboard — IoT Authentication Security Project</title>
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f1520;--card:#141c2b;--border:#1e2d45;
+  --accent:#00d4ff;--ok:#00c97a;--warn:#f0a500;--danger:#ff3c5a;
+  --text:#c8d8e8;--dim:#4a6280;--head:#e8f0f8;
+  --mono:'JetBrains Mono','Fira Code','Courier New',monospace;
+  --sans:'Inter','Segoe UI',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:50%;display:grid;place-items:center;font-size:16px}
+.logo-text strong{display:block;font-family:var(--mono);font-size:14px;color:var(--accent)}
+.logo-text span{font-size:11px;color:var(--dim)}
+.vm-badge{font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(0,212,255,.1);border:1px solid var(--accent);color:var(--accent)}
+.clock{font-family:var(--mono);font-size:12px;color:var(--dim)}
+
+main{max-width:1300px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.card.full{grid-column:1/-1}
+.card-header{padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.card-body{padding:16px}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;grid-column:1/-1}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.stat.cyan::after{background:var(--accent)}.stat.green::after{background:var(--ok)}.stat.red::after{background:var(--danger)}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:4px}
+.stat-value{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--head)}
+.stat-value.ok{color:var(--ok)}.stat-value.danger{color:var(--danger)}
+.stat-sub{font-size:11px;color:var(--dim);margin-top:2px}
+
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .15s;width:100%}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.start-vuln{border-color:rgba(240,165,0,.4)}.btn.start-vuln:hover{border-color:var(--warn);color:var(--warn)}
+.btn.start-hmac{border-color:rgba(0,201,122,.4)}.btn.start-hmac:hover{border-color:var(--ok);color:var(--ok)}
+.btn.stop{border-color:rgba(255,60,90,.3)}.btn.stop:hover{border-color:var(--danger);color:var(--danger)}
+.btn.clear{grid-column:1/-1;justify-content:center}
+
+.svc-list{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.svc-row{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:11px}
+.svc-name{color:var(--dim)}
+.badge{padding:2px 10px;border-radius:3px;font-size:10px}
+.badge.on{background:rgba(0,201,122,.15);color:var(--ok)}
+.badge.off{background:rgba(255,60,90,.1);color:var(--danger)}
+
+.phase-compare{display:grid;grid-template-columns:1fr 30px 1fr}
+.phase-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px;border-bottom:1px solid var(--border)}
+.phase-label.vuln{color:var(--warn);background:rgba(240,165,0,.05)}
+.phase-label.hmac{color:var(--ok);background:rgba(0,201,122,.05)}
+.phase-vs{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--dim);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.p-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(30,45,69,.4)}
+.p-row:last-child{border-bottom:none}
+.p-name{font-size:11px;color:var(--dim);width:100px;flex-shrink:0}
+.p-track{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.p-fill{height:100%;border-radius:4px;transition:width .7s ease}
+.p-fill.ok{background:var(--ok)}.p-fill.danger{background:var(--danger)}
+.p-val{font-family:var(--mono);font-size:11px;width:36px;text-align:right;flex-shrink:0}
+
+/* SCRIPT OUTPUT PANELS */
+.script-panels{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.phase-out-header{padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.phase-out-title{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.phase-out-title.vuln{color:var(--warn)}
+.phase-out-title.hmac{color:var(--ok)}
+
+/* LOGS — no auto-scroll: user controls scrolling */
+.log-tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border)}
+.log-tab{padding:7px 14px;font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s}
+.log-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.log-out{font-family:var(--mono);font-size:11px;line-height:1.7;height:260px;overflow-y:auto;padding:12px;background:var(--bg);color:#5a8ab0}
+.log-out::-webkit-scrollbar{width:4px}
+.log-out::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.ll{display:block;white-space:pre-wrap;word-break:break-all}
+.ll.ok{color:var(--ok)}.ll.bad{color:var(--danger)}.ll.warn{color:var(--warn)}.ll.alert{color:var(--danger);font-weight:bold}
+.ll-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--dim);font-size:12px}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+footer{text-align:center;padding:16px;font-family:var(--mono);font-size:10px;color:var(--dim);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🖥</div>
+    <div class="logo-text">
+      <strong>Server Dashboard</strong>
+      <span>Ubuntu Server VM — Port 5000</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="vm-badge">🖥 Ubuntu Server VM</div>
+    <div class="clock" id="clk">--:--:--</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat cyan">
+      <div class="stat-label">Vulnerable — Accepted</div>
+      <div class="stat-value" id="v-acc">—</div>
+      <div class="stat-sub">authenticated requests</div>
+    </div>
+    <div class="stat red">
+      <div class="stat-label">Vulnerable — Rejected</div>
+      <div class="stat-value danger" id="v-rej">—</div>
+      <div class="stat-sub">blocked requests</div>
+    </div>
+    <div class="stat green">
+      <div class="stat-label">HMAC — Blocked</div>
+      <div class="stat-value ok" id="h-rej">—</div>
+      <div class="stat-sub">attacks stopped by HMAC</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⚙ Server Controls</div>
+    </div>
+    <div class="card-body">
+      <div class="btn-grid">
+        <button class="btn start-vuln" onclick="api('start','vulnerable')">▶ Start Vulnerable Server</button>
+        <button class="btn stop"       onclick="api('stop','vulnerable')">■ Stop Vulnerable Server</button>
+        <button class="btn start-hmac" onclick="api('start','hmac')">▶ Start HMAC Server</button>
+        <button class="btn stop"       onclick="api('stop','hmac')">■ Stop HMAC Server</button>
+        <button class="btn clear"      onclick="api('clear')">🗑 Clear All Logs</button>
+      </div>
+      <div class="svc-list">
+        <div class="svc-row"><span class="svc-name">Vulnerable_server.py</span><span class="badge off" id="svc-v">● OFFLINE</span></div>
+        <div class="svc-row"><span class="svc-name">HMAC_server.py</span><span class="badge off" id="svc-h">● OFFLINE</span></div>
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--dim)">
+        ⚠ Run only one server at a time — both use port 5000
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE COMPARISON -->
+  <div class="card">
+    <div class="card-header"><div class="card-title"><span class="dot"></span> Phase Comparison</div></div>
+    <div class="card-body" style="padding:0">
+      <div class="phase-compare">
+        <div>
+          <div class="phase-label vuln">Phase 1 — Vulnerable</div>
+          <div class="p-row"><div class="p-name">Accepted</div><div class="p-track"><div class="p-fill danger" id="pb-va" style="width:0%"></div></div><div class="p-val" id="pv-va">—</div></div>
+          <div class="p-row"><div class="p-name">Rejected</div><div class="p-track"><div class="p-fill ok" id="pb-vr" style="width:0%"></div></div><div class="p-val" id="pv-vr">—</div></div>
+        </div>
+        <div class="phase-vs">VS</div>
+        <div>
+          <div class="phase-label hmac">Phase 2 — HMAC</div>
+          <div class="p-row"><div class="p-name">Accepted</div><div class="p-track"><div class="p-fill ok" id="pb-ha" style="width:0%"></div></div><div class="p-val" id="pv-ha">—</div></div>
+          <div class="p-row"><div class="p-name">Rejected</div><div class="p-track"><div class="p-fill danger" id="pb-hr" style="width:0%"></div></div><div class="p-val" id="pv-hr">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT OUTPUT PANELS — shown above the logs -->
+  <div class="script-panels">
+    <div class="card">
+      <div class="phase-out-header">
+        <div class="phase-out-title vuln">▶ Vulnerable_server.py — Activity Log</div>
+        <span class="badge off" id="out-svc-v">● OFFLINE</span>
+      </div>
+      <div class="log-out" id="out-vulnerable"><span class="ll-empty">Start Vulnerable Server and send data to see activity…</span></div>
+    </div>
+    <div class="card">
+      <div class="phase-out-header">
+        <div class="phase-out-title hmac">▶ HMAC_server.py — Activity Log</div>
+        <span class="badge off" id="out-svc-h">● OFFLINE</span>
+      </div>
+      <div class="log-out" id="out-hmac"><span class="ll-empty">Start HMAC Server and send data to see activity…</span></div>
+    </div>
+  </div>
+
+  <!-- SERVER LOGS -->
+  <div class="card full">
+    <div class="card-header"><div class="card-title">📋 Server Auth Logs</div></div>
+    <div class="log-tabs">
+      <div class="log-tab active" onclick="switchTab('vulnerable',this)">Phase 1 — Vulnerable_system.log</div>
+      <div class="log-tab"       onclick="switchTab('hmac',this)">Phase 2 — HMAC_system.log</div>
+    </div>
+    <div class="log-out" id="log-out"><span class="ll-empty">Waiting for log data…</span></div>
+  </div>
+
+</main>
+
+<footer>Server Dashboard · IoT Auhtentication Security Project · Auto-refresh 4s</footer>
+
+<script>
+let activeLog = 'vulnerable';
+
+function switchTab(name, el) {
+  activeLog = name;
+  document.querySelectorAll('.log-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  fetchLog(name);
+}
+
+setInterval(() => { document.getElementById('clk').textContent = new Date().toLocaleTimeString('en-GB'); }, 1000);
+
+function colour(line) {
+  const l = line.toLowerCase();
+  if (l.includes('alert') || l.includes('mismatch') || l.includes('impersonation')) return `<span class="ll alert">${line}</span>`;
+  if (l.includes('successful') || l.includes('accepted') || l.includes('welcome'))  return `<span class="ll ok">${line}</span>`;
+  if (l.includes('rejected') || l.includes('unauthorized') || l.includes('missing') || l.includes('blocked')) return `<span class="ll bad">${line}</span>`;
+  if (l.includes('warning')) return `<span class="ll warn">${line}</span>`;
+  return `<span class="ll">${line}</span>`;
+}
+
+// Render without auto-scrolling — user scrolls manually
+function renderInto(elId, lines, emptyMsg) {
+  const el = document.getElementById(elId);
+  if (!lines || !lines.length) {
+    el.innerHTML = `<span class="ll-empty">${emptyMsg}</span>`;
+    return;
+  }
+  el.innerHTML = lines.map(colour).join('\n');
+  // NO el.scrollTop = el.scrollHeight — user controls scroll position
+}
+
+async function fetchLog(name) {
+  try {
+    const r = await fetch(`/api/logs/${name}`);
+    const d = await r.json();
+    renderInto('log-out', d.lines, 'No entries yet…');
+  } catch(e) {}
+}
+
+async function fetchScriptOutput(name, elId) {
+  try {
+    const r = await fetch(`/api/output/${name}`);
+    const d = await r.json();
+    renderInto(elId, d.lines, `Start ${name === 'vulnerable' ? 'Vulnerable' : 'HMAC'} Server to see output…`);
+  } catch(e) {}
+}
+
+function bar(barId, valId, v, max) {
+  const pct = max > 0 ? Math.min((v/max)*100,100) : 0;
+  document.getElementById(barId).style.width = pct + '%';
+  document.getElementById(valId).textContent = v;
+}
+
+async function pollStatus() {
+  try {
+    const r = await fetch('/api/status'); const d = await r.json();
+    const vs = d.vulnerable_stats, hs = d.hmac_stats;
+    const maxV = Math.max(vs.total, 1), maxH = Math.max(hs.total, 1);
+
+    document.getElementById('v-acc').textContent = vs.accepted ?? '—';
+    document.getElementById('v-rej').textContent = vs.rejected ?? '—';
+    document.getElementById('h-rej').textContent = hs.rejected ?? '—';
+
+    bar('pb-va','pv-va', vs.accepted, maxV);
+    bar('pb-vr','pv-vr', vs.rejected, maxV);
+    bar('pb-ha','pv-ha', hs.accepted, maxH);
+    bar('pb-hr','pv-hr', hs.rejected, maxH);
+
+    const svcV = d.services.vulnerable, svcH = d.services.hmac;
+
+    // Main control panel badges
+    const bv = document.getElementById('svc-v');
+    bv.textContent = svcV ? '● ONLINE' : '● OFFLINE'; bv.className = `badge ${svcV?'on':'off'}`;
+    const bh = document.getElementById('svc-h');
+    bh.textContent = svcH ? '● ONLINE' : '● OFFLINE'; bh.className = `badge ${svcH?'on':'off'}`;
+
+    // Script output panel badges
+    const ov = document.getElementById('out-svc-v');
+    ov.textContent = svcV ? '● ONLINE' : '● OFFLINE'; ov.className = `badge ${svcV?'on':'off'}`;
+    const oh = document.getElementById('out-svc-h');
+    oh.textContent = svcH ? '● ONLINE' : '● OFFLINE'; oh.className = `badge ${svcH?'on':'off'}`;
+
+  } catch(e) {}
+}
+
+async function api(action, name) {
+  const url = name ? `/api/${action}/${name}` : `/api/${action}`;
+  try { await fetch(url, {method:'POST'}); } catch(e) {}
+}
+
+async function poll() {
+  await pollStatus();
+  await fetchLog(activeLog);
+  await fetchScriptOutput('vulnerable', 'out-vulnerable');
+  await fetchScriptOutput('hmac', 'out-hmac');
+}
+poll(); setInterval(poll, 4000);
+</script>
+</body>
+</html>

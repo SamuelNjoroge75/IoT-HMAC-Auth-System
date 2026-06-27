@@ -29,6 +29,16 @@ IoT-HMAC-Auth-System/
 ├── Evaluation
 |   │──security_evaluation.py
 │   └── Evaluation_README.md
+├── Dashboards
+│   ├── server_dashboard.py
+│   ├── client_dashboard.py
+│   ├── attacker_dashboard.py
+│   └── templates/
+│   |    ├── server.html
+│   |    ├── IoT.html
+│   |    └── attacker.html
+|   |  
+|   └──Dashboards_README.md
 └── README.md
 
 ---
@@ -53,6 +63,27 @@ See `Phase_2/Phase2_README.md` for full setup and attack steps.
 A comparison script parses both phases' attacker logs and generates a side-by-side table showing the security improvement achieved by HMAC.
 
 See evaluation README for details.
+
+---
+
+## Dashboards
+Each VM has a browser-based dashboard for controlling and monitoring scripts without using the terminal directly.
+
+| Dashboard | VM | URL |
+|---|---|---|
+| server_dashboard.py | Ubuntu Server | http://<server's IP Address>:8080 |
+| client_dashboard.py | IoT Device | http://<device's IP Address>:8081 |
+| attacker_dashboard.py | Attacker | http://<device's IP Address>:8082 |
+
+To run on each VM:
+```bash
+pip install flask flask-cors requests
+python3 Dashboards/server_dashboard.py     # on Ubuntu Server VM
+python3 Dashboards/client_dashboard.py     # on IoT Device VM
+python3 Dashboards/attacker_dashboard.py   # on Attacker VM
+```
+
+The dashboards allow you to start/stop server scripts, run attack and client scripts, and view live output and logs — all from the browser.
 
 ---
 

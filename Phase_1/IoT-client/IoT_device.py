@@ -4,8 +4,8 @@ import time
 import random 
 
 Device_id = "Temperature_Sensor"
-Device_mac_address = '98:76:54:32:10:FE:DC:BA'
-server_url= "http://127.0.0.1:5000"
+Device_mac_address = 'device mac address'
+server_url= "http://<server's IP Address>:5000"
 
 def send_data():
     temperature_data= round(random.uniform(20.0, 40.0), 2) #This generates a random temperature value between 20.0 and 40.0 degrees Celsius, rounded to 2 decimal places.

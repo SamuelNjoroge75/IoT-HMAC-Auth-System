@@ -9,8 +9,8 @@ logging.basicConfig(
     format="%(asctime)s-%(levelname)s- %(message)s"
 )
 
-spoofed_mac_address = '98:76:54:32:10:FE:DC:BA'
-server_url="http://127.0.0.1:5000/data"
+spoofed_mac_address = '<spoofed mac_address from Nmap discovery>'
+server_url="http://<server's IP Address>:5000/data"
 total_attempts=10
 
 def send_forged_requests():
