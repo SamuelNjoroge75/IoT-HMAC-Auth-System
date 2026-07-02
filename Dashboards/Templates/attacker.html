@@ -6,9 +6,9 @@
 <title>Attacker Dashboard — IoT Authentication Security Project</title>
 <style>
 :root{
-  --bg:#0a0e14;--panel:#0f1520;--card:#141c2b;--border:#1e2d45;
-  --accent:#ff3c5a;--ok:#00c97a;--warn:#f0a500;--danger:#ff3c5a;--blue:#00d4ff;
-  --text:#c8d8e8;--dim:#4a6280;--head:#e8f0f8;
+  --bg:#f7f1e3;--panel:#efe6d0;--card:#fdfaf1;--border:#d8cba9;
+  --accent:#b8203a;--ok:#087a48;--warn:#a86800;--danger:#b8203a;--blue:#00708f;
+  --text:#151b24;--dim:#4a5568;--head:#05080d;
   --mono:'JetBrains Mono','Fira Code','Courier New',monospace;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
 }
@@ -23,7 +23,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:12p
 .vm-badge{font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(255,60,90,.1);border:1px solid var(--danger);color:var(--danger)}
 .clock{font-family:var(--mono);font-size:12px;color:var(--dim)}
 
-main{max-width:1300px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+main{max-width:1650px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:440px 1fr;gap:16px;align-items:start}
+.left-col{display:flex;flex-direction:column;gap:16px}
+.right-col{display:flex;flex-direction:column;gap:16px}
 
 .card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
 .card.full{grid-column:1/-1}
@@ -93,7 +95,7 @@ main{max-width:1300px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-tem
 .log-tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border)}
 .log-tab{padding:7px 14px;font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s}
 .log-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.log-out{font-family:var(--mono);font-size:11px;line-height:1.7;height:260px;overflow-y:auto;padding:12px;background:var(--bg);color:#5a8ab0}
+.log-out{font-family:var(--mono);font-size:11px;line-height:1.7;height:640px;overflow-y:auto;padding:12px;background:var(--bg);color:#2b3648}
 .log-out::-webkit-scrollbar{width:4px}
 .log-out::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .ll{display:block;white-space:pre-wrap;word-break:break-all}
@@ -146,6 +148,8 @@ footer{text-align:center;padding:16px;font-family:var(--mono);font-size:10px;col
     </div>
   </div>
 
+  <!-- LEFT COLUMN: ATTACK CONTROLS -->
+  <div class="left-col">
   <!-- PHASE 1 ATTACK CARD -->
   <div class="phase-card">
     <div class="phase-header vuln">
@@ -235,7 +239,10 @@ footer{text-align:center;padding:16px;font-family:var(--mono);font-size:10px;col
       <button class="btn clear" onclick="clearAll()" style="margin-top:8px">🗑 Clear All &amp; Reset</button>
     </div>
   </div>
+  </div>
 
+  <!-- RIGHT COLUMN: OUTPUT LOGS -->
+  <div class="right-col">
   <!-- OUTPUT LOGS — Phase 1 and Phase 2 side by side -->
   <div class="card full">
     <div class="card-header"><div class="card-title">📋 Attack Script Output &amp; Logs</div></div>
@@ -245,6 +252,7 @@ footer{text-align:center;padding:16px;font-family:var(--mono);font-size:10px;col
       <div class="log-tab"       onclick="switchTab('nmap',this)">Nmap Discovery</div>
     </div>
     <div class="log-out" id="log-out"><span class="ll-empty">Run an attack above to see output here…</span></div>
+  </div>
   </div>
 
 </main>
